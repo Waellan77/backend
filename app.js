@@ -1,12 +1,13 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const sauces = require('./models/sauces')
+const sauce = require('./models/sauces')
 
-const sauces = require('./models/sauces')
+const Sauce = require('./models/sauces')
 
 const app = express()
 
-mongoose.connect('mongodb+srv://Waellan:Arnold34Bart70@cluster0.dwuaj46.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect('mongodb+srv://Waellan:Arnold34Bart70@cluster0.xyadqry.mongodb.net/?retryWrites=true&w=majority',
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -25,32 +26,36 @@ app.use((req, res, next) => {
 
 app.post('/api/sauces', (req, res, next) => {
     delete req.body._id
-    const sauces = new sauces({
+    const sauce = new Sauce({
         ...req.body
     })
-    sauces.save()
+    sauce.save()
         .then(() => res.status(201).json({ message: 'Sauce enregistrée !' }))
         .catch(error => res.status(400).json({ error }))
 })
 
+app.put('/api/sauces/:id', (req, res, next) => {
+    Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+        .then(() => res.status(200).json({ message: 'Sauce modifiée !' }))
+        .catch(error => res.status(400).json({ error }))
+})
+
+app.delete('/api/sauces/:id', (req, res, next) => {
+    Sauce.deleteOne({ _id: req.params.id })
+        .then(() => res.status(200).json({ message: 'Sauce supprimée !' }))
+        .catch(error => res.status(400).json({ error }))
+})
+
+app.get('/api/sauces/:id', (req, res, next) => {
+    Sauce.findOne({ _id: req.params.id })
+        .then(sauces => res.status(200).json(sauces))
+        .catch(error => res.status(404).json({ error }))
+})
+
 app.get('/api/sauces', (req, res, next) => {
-    const sauces = [
-        {
-            _id: '00001',
-            userId: '',
-            name: 'Samouraï',
-            manufacturer: 'Amora',
-            description: `La sauce samouraï est une sauce typiquement belge, assez relevée, servie traditionnellement avec des frites. Elle n'est pas, comme son nom pourrait le faire croire, originaire du Japon. Il s'agit d'un mélange de mayonnaise, de ketchup et de sambal ulek ou de harissa.`,
-            mainPepper: 'Sambal Ulek',
-            imageUrl: '',
-            heat: 7,
-            likes: 100,
-            dislikes: 2,
-            usersLiked: ['likes' + 'userId'],
-            usersDisliked: ['dislikes' + 'userId']
-        }
-    ]
-    res.status(200).json(sauces)
+    Sauce.find()
+        .then(sauces => res.status(200).json(sauces))
+        .catch(error => res.status(400).json({ error }))
 })
 
 module.exports = app
